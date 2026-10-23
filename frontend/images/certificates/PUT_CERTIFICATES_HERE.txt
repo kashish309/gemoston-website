@@ -1,0 +1,8 @@
+Place product-specific authenticity certificate images in this folder.
+
+Use clear filenames, for example:
+ruby-certificate.jpg
+emerald-certificate.jpg
+blue-sapphire-certificate.jpg
+
+Then add the matching certificate_image path to that product in backend/data/products.py.

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ali Gemora Admin</title>
+  <style>
+    :root{--ink:#2f281f;--muted:#776d60;--gold:#ae8040;--cream:#f7f0e4;--paper:#fffdf8;--line:#dfd1bd}
+    *{box-sizing:border-box}body{margin:0;background:var(--cream);color:var(--ink);font:15px Arial,sans-serif}.wrap{width:min(920px,calc(100% - 28px));margin:0 auto;padding:28px 0 60px}h1,h2{font-family:Georgia,serif;font-weight:400}h1{font-size:clamp(30px,6vw,48px);margin:0 0 8px}h2{font-size:26px}.muted{color:var(--muted)}.panel{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:22px;margin-top:20px;box-shadow:0 8px 24px #4b321f12}label{display:block;font-size:12px;color:var(--muted);margin:14px 0 6px}input{width:100%;min-height:46px;border:1px solid var(--line);border-radius:7px;padding:0 12px;font-size:16px;background:#fff}input[type=file]{padding:10px 8px;font-size:12px}button{border:1px solid var(--gold);border-radius:24px;background:var(--gold);color:#fff;padding:12px 20px;cursor:pointer;font-weight:700}button.secondary{background:transparent;color:var(--ink)}button.small{padding:9px 14px;font-size:12px}button:hover{filter:brightness(.94)}.row{display:grid;grid-template-columns:1.2fr 150px 220px auto;gap:14px;align-items:end;padding:14px 0;border-bottom:1px solid var(--line)}.row:last-child{border-bottom:0}.category{font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-top:5px}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.notice{min-height:22px;margin-top:14px;color:var(--muted)}.error{color:#a23c31}.success{color:#397044}.topbar{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}@media(max-width:760px){.row{grid-template-columns:1fr 1fr}.row>label:first-child{grid-column:1/-1}.row button{grid-column:1/-1}.panel{padding:16px}}@media(max-width:420px){.row{grid-template-columns:1fr}.row button{grid-column:auto}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="topbar"><div><h1>Ali Gemora Admin</h1><p class="muted">Private price management</p></div><button id="logout" class="secondary" hidden>Log out</button></div>
+    <section id="login-panel" class="panel">
+      <h2>Admin login</h2><p class="muted">Use your private admin password.</p>
+      <form id="login-form"><label for="login-password">Password</label><input id="login-password" type="password" autocomplete="current-password" required><div class="actions"><button type="submit">Log in</button></div></form><p id="login-message" class="notice"></p>
+    </section>
+    <section id="dashboard" hidden>
+      <div class="panel"><h2>Gemstone names, prices and images</h2><p class="muted">Change card names and prices, then press Save changes. Choose a JPG, PNG, or WebP image and press Upload image to replace that gemstone’s shop image.</p><form id="prices-form"><div id="products-list"></div><div class="actions"><button type="submit">Save changes</button></div></form><p id="prices-message" class="notice"></p></div>
+      <div class="panel"><h2>Change admin password</h2><p class="muted">Use at least 12 characters. Your new password is not displayed or stored in plain text.</p><form id="password-form"><label for="current-password">Current password</label><input id="current-password" type="password" autocomplete="current-password" required><label for="new-password">New password</label><input id="new-password" type="password" minlength="12" autocomplete="new-password" required><label for="confirm-password">Confirm new password</label><input id="confirm-password" type="password" minlength="12" autocomplete="new-password" required><div class="actions"><button type="submit">Change password</button></div></form><p id="password-message" class="notice"></p></div>
+    </section>
+  </main>
+  <script src="/admin.js"></script>
+</body>
+</html>

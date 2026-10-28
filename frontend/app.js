@@ -35,6 +35,8 @@ const assetUrl = (value) => {
     return raw;
 };
 
+const ORDER_ENQUIRY_WHATSAPP_NUMBER = "923241227746";
+
 
 const api = async (url, options = {}) => {
     const response = await fetch(url, {
@@ -1670,8 +1672,7 @@ function setupEvents() {
                     `Total: ${money(total)}`
                 ].join("\n");
 
-                const whatsappNumber = "923451309630";
-                const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+                const whatsappUrl = `https://wa.me/${ORDER_ENQUIRY_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
                 window.open(whatsappUrl, "_blank", "noopener,noreferrer");
                 $("#checkout-modal")?.classList.remove("open");
 
@@ -1699,10 +1700,8 @@ function setupEvents() {
                   `Address: ${data.get("address")}`
               ].join("\n");
 
-              const whatsappNumber = "923451309630";
-
               const whatsappUrl =
-                  `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+                  `https://wa.me/${ORDER_ENQUIRY_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 
               window.open(whatsappUrl, "_blank");
 

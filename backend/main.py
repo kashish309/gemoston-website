@@ -67,6 +67,15 @@ DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 ADMIN_SESSION_COOKIE = "ali_gemora_admin"
 ADMIN_SESSION_SECONDS = 60 * 60 * 12
 
+# Comma-separated production frontend origins, set in Enzonic's environment
+# variables (for example: https://ali-gemora.vercel.app). Keeping this empty
+# by default prevents accidental unrestricted cross-origin access.
+FRONTEND_ORIGINS = [
+    origin.strip().rstrip("/")
+    for origin in os.environ.get("FRONTEND_ORIGINS", "").split(",")
+    if origin.strip()
+]
+
 
 def password_hash(password: str, salt: str) -> str:
     return hashlib.pbkdf2_hmac(
@@ -245,11 +254,12 @@ app = FastAPI(
     version="1.0.0"
 )
 
-app.mount(
-    "/images",
-    StaticFiles(directory=str(FRONTEND_DIR)),
-    name="images"
-)
+if FRONTEND_DIR.exists():
+    app.mount(
+        "/images",
+        StaticFiles(directory=str(FRONTEND_DIR)),
+        name="images"
+    )
 
 app.mount(
     "/uploads",
@@ -264,7 +274,7 @@ app.mount(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=FRONTEND_ORIGINS,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -383,6 +393,8 @@ def gemstones():
 
 @app.get("/admin")
 def admin_page():
+    if not FRONTEND_DIR.exists():
+        raise HTTPException(status_code=404, detail="Admin UI is deployed separately")
     return FileResponse(FRONTEND_DIR / "admin.html")
 
 
@@ -749,8 +761,9 @@ def chat(request: ChatRequest):
 # IMAGE / STATIC FILES
 # =========================================================
 
-# The single /images mount above serves the frontend directory. This keeps
-# the existing hero URL working and serves product files from /images/images/.
+# The frontend is deployed separately on Vercel. When a full project checkout
+# is used, this mount can still serve its frontend assets; the backend-only
+# Enzonic deployment intentionally has no frontend directory.
 
 
 # =========================================================
@@ -761,14 +774,20 @@ def chat(request: ChatRequest):
 # Ye sabse LAST mein hona chahiye.
 # "/" ko frontend folder serve karega.
 
-app.mount(
-    "/",
-    StaticFiles(
-        directory=FRONTEND_DIR,
-        html=True
-    ),
-    name="frontend"
-)
+if FRONTEND_DIR.exists():
+    app.mount(
+        "/",
+        StaticFiles(
+            directory=FRONTEND_DIR,
+            html=True
+        ),
+        name="frontend"
+    )
 print("ROOT =", ROOT)
 print("FRONTEND_DIR =", FRONTEND_DIR)
-print("IMAGE EXISTS =", (FRONTEND_DIR / "ali-gemora.png.png").exists())
+if FRONTEND_DIR.exists():
+    print("FRONTEND ASSET ROOT EXISTS =", True)
+    print("HERO IMAGE EXISTS =", (FRONTEND_DIR / "ali-gemora.png.png").exists())
+else:
+    print("FRONTEND ASSET ROOT EXISTS =", False)
+    print("Frontend assets are deployed separately; Vercel serves catalog images.")

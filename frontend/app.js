@@ -23,6 +23,18 @@ const escapeHtml = (value) =>
         "'": "&#039;"
     })[char]);
 
+// The backend catalogue historically returns /images/images/<file> because
+// its full-project deployment mounted the frontend directory at /images.
+// On Vercel, the same files live at /images/<file> in this frontend project.
+// Normalize that legacy prefix without changing backend data.
+const assetUrl = (value) => {
+    const raw = String(value ?? "").trim();
+    if (raw.startsWith("/images/images/")) {
+        return `/images/${raw.slice("/images/images/".length)}`;
+    }
+    return raw;
+};
+
 
 const api = async (url, options = {}) => {
     const response = await fetch(url, {
@@ -244,8 +256,8 @@ function renderProducts(products) {
             <div class="product-image">
 
                 ${String(item.image || "").toLowerCase().endsWith(".mp4")
-                    ? `<video controls preload="metadata" aria-label="${escapeHtml(item.name || "Certificate")}"><source src="${escapeHtml(item.image)}" type="video/mp4"></video>`
-                    : `<img src="${escapeHtml(item.image || "")}" alt="${escapeHtml(item.name || "Gemstone")}" loading="lazy">`}
+                    ? `<video controls preload="metadata" aria-label="${escapeHtml(item.name || "Certificate")}"><source src="${escapeHtml(assetUrl(item.image))}" type="video/mp4"></video>`
+                    : `<img src="${escapeHtml(assetUrl(item.image))}" alt="${escapeHtml(item.name || "Gemstone")}" loading="lazy">`}
 
                 ${
                     item.discount
@@ -672,7 +684,7 @@ function updateCart() {
             <div class="cart-item">
 
                 <img
-                    src="${escapeHtml(item.image || "")}"
+                    src="${escapeHtml(assetUrl(item.image))}"
                     alt="${escapeHtml(item.name || "")}"
                 >
 
@@ -808,7 +820,7 @@ function openProductDetails(product) {
         <div class="detail-grid">
 
             <img
-                src="${escapeHtml(product.image || "")}"
+                src="${escapeHtml(assetUrl(product.image))}"
                 alt="${escapeHtml(product.name || "")}"
             >
 
@@ -890,7 +902,7 @@ function openProductDetails(product) {
                         <button
                             class="button certificate-button"
                             type="button"
-                            data-certificate="${escapeHtml(product.certificate_image)}"
+                            data-certificate="${escapeHtml(assetUrl(product.certificate_image))}"
                             data-certificate-name="${escapeHtml(product.name || "Gemstone")}"
                         >
                             View Authenticity Certificate
@@ -1420,7 +1432,7 @@ function openCertificateViewer(imageUrl, gemstoneName) {
 
     if (!modal || !image || !imageUrl) return;
 
-    image.src = imageUrl;
+    image.src = assetUrl(imageUrl);
     image.alt = `${gemstoneName || "Gemstone"} authenticity certificate`;
     if (title) {
         title.textContent = `${gemstoneName || "Gemstone"} Authenticity Certificate`;

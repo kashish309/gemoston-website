@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "http://lon-one.enzonic.com:25854/api/:path*"
+    },
+    {
+      "source": "/admin",
+      "destination": "/admin.html"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "http://lon-one.enzonic.com:25854/uploads/:path*"
+    }
+  ]
+}

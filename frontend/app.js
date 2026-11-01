@@ -35,7 +35,7 @@ const assetUrl = (value) => {
     return raw;
 };
 
-const ORDER_ENQUIRY_WHATSAPP_NUMBER = "923241227746";
+const ORDER_ENQUIRY_WHATSAPP_NUMBER = "923463663877";
 
 
 const api = async (url, options = {}) => {

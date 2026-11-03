@@ -343,6 +343,42 @@ function renderProducts(products) {
 }
 
 
+function renderCertificateGemstones(certificates) {
+
+    const grid = $("#certificate-featured-gems");
+    if (!grid) return;
+
+    if (!Array.isArray(certificates) || !certificates.length) {
+        grid.innerHTML = `<div class="empty-results"><p>Certified gemstones are temporarily unavailable.</p></div>`;
+        return;
+    }
+
+    grid.innerHTML = certificates.map((item) => `
+        <div class="big-gem-card featured-mala-card">
+            <img class="certificate-featured-image" src="${escapeHtml(assetUrl(item.image))}" alt="${escapeHtml(item.name || "Certificate gemstone")}">
+            <h3>${escapeHtml(item.name || "Certificate gemstone")}</h3>
+            <p class="featured-price">${escapeHtml(money(item.price))}</p>
+            <button class="button certificate-button" type="button" data-certificate="${escapeHtml(assetUrl(item.certificate_image))}" data-certificate-name="${escapeHtml(item.name || "Certificate gemstone")}">View Authenticity Certificate</button>
+        </div>
+    `).join("");
+}
+
+
+async function loadCertificateGemstones() {
+
+    const grid = $("#certificate-featured-gems");
+    if (!grid) return;
+
+    try {
+        const data = await api("/api/certificates");
+        renderCertificateGemstones(data);
+    } catch (error) {
+        console.error("Could not load certificate gemstones:", error);
+        grid.innerHTML = `<div class="empty-results"><p>Certified gemstones are temporarily unavailable.</p></div>`;
+    }
+}
+
+
 /* =========================================================
    FILTER PRODUCTS
    ========================================================= */
@@ -2072,6 +2108,8 @@ document.addEventListener(
         setupChat();
 
         loadProducts();
+
+        loadCertificateGemstones();
 
     }
 );

@@ -21,6 +21,7 @@ function showDashboard(products) {
     <div class="row">
       <label>Name<input class="name-input" data-id="${escapeHtml(product.id)}" type="text" maxlength="120" value="${escapeHtml(product.name)}" required><div class="category">${escapeHtml(product.category)}</div></label>
       <label>Price<input class="price-input" data-id="${escapeHtml(product.id)}" type="number" min="1" step="0.01" value="${Number(product.price)}" required></label>
+      <label>Carat (ct)<input class="carat-input" data-id="${escapeHtml(product.id)}" type="number" min="0.01" step="0.01" value="${product.carat == null ? "" : escapeHtml(product.carat)}" placeholder="Optional"></label>
       <label>New image<input class="image-input" data-id="${escapeHtml(product.id)}" type="file" accept="image/jpeg,image/png,image/webp"></label>
       <button class="small upload-image" data-id="${escapeHtml(product.id)}" type="button">Upload image</button>
     </div>`).join("");
@@ -69,12 +70,15 @@ $("#prices-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const prices = {};
   const names = {};
+  const carats = {};
   document.querySelectorAll(".price-input").forEach((input) => { prices[input.dataset.id] = Number(input.value); });
   document.querySelectorAll(".name-input").forEach((input) => { names[input.dataset.id] = input.value.trim(); });
+  document.querySelectorAll(".carat-input").forEach((input) => { carats[input.dataset.id] = input.value.trim() === "" ? null : Number(input.value); });
   try {
     await api("/api/admin/names", { method: "PUT", headers: {"Content-Type":"application/json"}, body: JSON.stringify({names}) });
     await api("/api/admin/prices", { method: "PUT", headers: {"Content-Type":"application/json"}, body: JSON.stringify({prices}) });
-    message("#prices-message", "Names and prices saved successfully.", true);
+    await api("/api/admin/carats", { method: "PUT", headers: {"Content-Type":"application/json"}, body: JSON.stringify({carats}) });
+    message("#prices-message", "Names, prices and carats saved successfully.", true);
   } catch (error) { message("#prices-message", error.message); }
 });
 

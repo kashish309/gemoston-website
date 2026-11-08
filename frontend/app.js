@@ -910,6 +910,12 @@ function openProductDetails(product) {
                     </dd>
 
 
+                    <dt>Carat</dt>
+                    <dd>
+                        ${product.carat == null ? "—" : `${escapeHtml(product.carat)} ct`}
+                    </dd>
+
+
                     <dt>Colour</dt>
                     <dd>
                         ${escapeHtml(product.color || "—")}

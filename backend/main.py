@@ -35,6 +35,7 @@ FRONTEND_DIR = ROOT / "frontend"
 ENV_FILE = ROOT / ".env"
 PRICE_OVERRIDES_FILE = ROOT / "backend" / "data" / "price_overrides.json"
 NAME_OVERRIDES_FILE = ROOT / "backend" / "data" / "name_overrides.json"
+CARAT_OVERRIDES_FILE = ROOT / "backend" / "data" / "carat_overrides.json"
 LEGACY_IMAGE_OVERRIDES_FILE = ROOT / "backend" / "data" / "image_overrides.json"
 IMAGE_STORAGE_DIR = Path(
     os.environ.get(
@@ -222,6 +223,46 @@ def load_image_overrides():
     return merged
 
 
+def load_carat_overrides():
+    local_data = {}
+    if CARAT_OVERRIDES_FILE.exists():
+        try:
+            data = json.loads(CARAT_OVERRIDES_FILE.read_text(encoding="utf-8"))
+            local_data = data if isinstance(data, dict) else {}
+        except (OSError, json.JSONDecodeError):
+            local_data = {}
+
+    if not DATABASE_URL:
+        return local_data
+
+    try:
+        import psycopg
+        with psycopg.connect(DATABASE_URL) as connection:
+            connection.execute("CREATE TABLE IF NOT EXISTS ali_gemora_settings (setting_key TEXT PRIMARY KEY, setting_value TEXT NOT NULL)")
+            row = connection.execute("SELECT setting_value FROM ali_gemora_settings WHERE setting_key = %s", ("carat_overrides",)).fetchone()
+            if row:
+                value = json.loads(row[0])
+                return value if isinstance(value, dict) else {}
+            connection.execute("INSERT INTO ali_gemora_settings (setting_key, setting_value) VALUES (%s, %s) ON CONFLICT (setting_key) DO NOTHING", ("carat_overrides", json.dumps(local_data)))
+            return local_data
+    except ImportError as error:
+        raise RuntimeError("DATABASE_URL is set but psycopg is not installed") from error
+
+
+def save_carat_overrides(overrides):
+    serialized = json.dumps(overrides, indent=2, sort_keys=True) + "\n"
+    if DATABASE_URL:
+        try:
+            import psycopg
+            with psycopg.connect(DATABASE_URL) as connection:
+                connection.execute("CREATE TABLE IF NOT EXISTS ali_gemora_settings (setting_key TEXT PRIMARY KEY, setting_value TEXT NOT NULL)")
+                connection.execute("INSERT INTO ali_gemora_settings (setting_key, setting_value) VALUES (%s, %s) ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value", ("carat_overrides", serialized))
+            return
+        except ImportError as error:
+            raise RuntimeError("DATABASE_URL is set but psycopg is not installed") from error
+    CARAT_OVERRIDES_FILE.write_text(serialized, encoding="utf-8")
+
+
 def save_image_overrides(overrides):
     IMAGE_STORAGE_OVERRIDES_FILE.write_text(
         json.dumps(overrides, indent=2, sort_keys=True) + "\n",
@@ -238,6 +279,11 @@ NAME_OVERRIDES = load_name_overrides()
 for product in PRODUCTS:
     if product["id"] in NAME_OVERRIDES:
         product["name"] = NAME_OVERRIDES[product["id"]]
+
+CARAT_OVERRIDES = load_carat_overrides()
+for product in PRODUCTS:
+    if product["id"] in CARAT_OVERRIDES:
+        product["carat"] = CARAT_OVERRIDES[product["id"]]
 
 IMAGE_OVERRIDES = load_image_overrides()
 for product in PRODUCTS:
@@ -310,6 +356,10 @@ class AdminPricesRequest(BaseModel):
 
 class AdminNamesRequest(BaseModel):
     names: dict[str, str]
+
+
+class AdminCaratsRequest(BaseModel):
+    carats: dict[str, float | None]
 
 
 # =========================================================
@@ -430,7 +480,7 @@ def admin_session(request: Request):
 def admin_products(request: Request):
     require_admin(request)
     return [
-        {"id": p["id"], "name": p["name"], "category": p["category"], "price": p["price"]}
+        {"id": p["id"], "name": p["name"], "category": p["category"], "price": p["price"], "carat": p.get("carat")}
         for p in PRODUCTS
     ]
 
@@ -476,6 +526,35 @@ def update_admin_names(payload: AdminNamesRequest, request: Request):
         if product["id"] in cleaned_names:
             product["name"] = cleaned_names[product["id"]]
     return {"ok": True, "updated": len(cleaned_names)}
+
+
+@app.put("/api/admin/carats")
+def update_admin_carats(payload: AdminCaratsRequest, request: Request):
+    require_admin(request)
+    product_ids = {p["id"] for p in PRODUCTS}
+    if set(payload.carats) - product_ids:
+        raise HTTPException(status_code=400, detail="Unknown product in carat update")
+
+    next_overrides = dict(CARAT_OVERRIDES)
+    for product_id, carat in payload.carats.items():
+        if carat is None:
+            next_overrides.pop(product_id, None)
+        elif not math.isfinite(carat) or carat <= 0 or carat > 1_000_000:
+            raise HTTPException(status_code=400, detail="Carat must be a positive valid number")
+        else:
+            next_overrides[product_id] = round(carat, 2)
+
+    save_carat_overrides(next_overrides)
+    CARAT_OVERRIDES.clear()
+    CARAT_OVERRIDES.update(next_overrides)
+    for product in PRODUCTS:
+        if product["id"] in payload.carats:
+            carat = payload.carats[product["id"]]
+            if carat is None:
+                product.pop("carat", None)
+            else:
+                product["carat"] = next_overrides[product["id"]]
+    return {"ok": True, "updated": len(payload.carats)}
 
 
 @app.post("/api/admin/products/{product_id}/image")

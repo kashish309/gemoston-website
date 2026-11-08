@@ -34,6 +34,7 @@ function renderCertificates(certificates) {
       <img class="certificate-preview" data-certificate-document-preview src="${escapeHtml(certificate.certificate_image)}" alt="Authenticity certificate for ${escapeHtml(certificate.name)}">
       <label>Name<input class="certificate-name-input" type="text" maxlength="120" value="${escapeHtml(certificate.name)}" required></label>
       <label>Price<input class="certificate-price-input" type="number" min="0.01" max="1000000000000" step="0.01" value="${Number(certificate.price)}" required></label>
+      <label>Carat (ct)<input class="certificate-carat-input" type="number" min="0.01" max="1000000" step="0.01" value="${certificate.carat == null ? "" : escapeHtml(certificate.carat)}" placeholder="Optional"></label>
       <label>New gemstone picture<input class="certificate-image-input" type="file" accept="image/jpeg,image/png,image/webp"><small>JPG, PNG, or WebP up to 10 MB</small></label>
       <label>New certificate image<input class="certificate-document-input" type="file" accept="image/jpeg,image/png,image/webp"><small>JPG, PNG, or WebP up to 10 MB</small></label>
       <button class="small save-certificate" type="button">Save/Update</button>
@@ -88,15 +89,19 @@ document.addEventListener("click", async (event) => {
     const row = certificateButton.closest(".certificate-row");
     const nameInput = row.querySelector(".certificate-name-input");
     const priceInput = row.querySelector(".certificate-price-input");
+    const caratInput = row.querySelector(".certificate-carat-input");
     const imageInput = row.querySelector(".certificate-image-input");
     const certificateImageInput = row.querySelector(".certificate-document-input");
     const name = nameInput.value.trim();
     const price = Number(priceInput.value);
+    const caratValue = caratInput.value.trim();
+    const carat = caratValue === "" ? null : Number(caratValue);
     const image = imageInput.files[0];
     const certificateImage = certificateImageInput.files[0];
 
     if (!name || name.length > 120) return message("#certificates-message", "Name must be 1 to 120 characters.");
     if (!Number.isFinite(price) || price <= 0 || price > 1000000000000) return message("#certificates-message", "Enter a valid positive price.");
+    if (carat !== null && (!Number.isFinite(carat) || carat <= 0 || carat > 1000000)) return message("#certificates-message", "Enter a valid positive carat value.");
     if (image && (!["image/jpeg", "image/png", "image/webp"].includes(image.type) || image.size > 10 * 1024 * 1024)) {
       return message("#certificates-message", "Upload a JPG, PNG, or WebP image smaller than 10 MB.");
     }
@@ -107,6 +112,7 @@ document.addEventListener("click", async (event) => {
     const form = new FormData();
     form.append("name", name);
     form.append("price", String(price));
+    form.append("carat", carat === null ? "" : String(carat));
     if (image) form.append("image", image);
     if (certificateImage) form.append("certificate_image", certificateImage);
     certificateButton.disabled = true;

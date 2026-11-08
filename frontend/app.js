@@ -358,6 +358,7 @@ function renderCertificateGemstones(certificates) {
             <img class="certificate-featured-image" src="${escapeHtml(assetUrl(item.image))}" alt="${escapeHtml(item.name || "Certificate gemstone")}">
             <h3>${escapeHtml(item.name || "Certificate gemstone")}</h3>
             <p class="featured-price">${escapeHtml(money(item.price))}</p>
+            <p>Carat: ${item.carat == null ? "—" : `${escapeHtml(item.carat)} ct`}</p>
             <button class="button certificate-button" type="button" data-certificate="${escapeHtml(assetUrl(item.certificate_image))}" data-certificate-name="${escapeHtml(item.name || "Certificate gemstone")}">View Authenticity Certificate</button>
         </div>
     `).join("");

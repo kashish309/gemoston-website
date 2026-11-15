@@ -261,16 +261,6 @@ function renderProducts(products) {
                     ? `<video controls preload="metadata" aria-label="${escapeHtml(item.name || "Certificate")}"><source src="${escapeHtml(assetUrl(item.image))}" type="video/mp4"></video>`
                     : `<img src="${escapeHtml(assetUrl(item.image))}" alt="${escapeHtml(item.name || "Gemstone")}" loading="lazy">`}
 
-                ${
-                    item.discount
-                        ? `
-                            <span class="sale-badge">
-                                ${escapeHtml(item.discount)}% OFF
-                            </span>
-                          `
-                        : ""
-                }
-
             </div>
 
 
@@ -300,16 +290,6 @@ function renderProducts(products) {
                     <strong>
                         ${money(item.price)}
                     </strong>
-
-                    ${
-                        item.old_price
-                            ? `
-                                <del>
-                                    ${money(item.old_price)}
-                                </del>
-                              `
-                            : ""
-                    }
 
                 </div>
 
@@ -881,16 +861,6 @@ function openProductDetails(product) {
                 <div class="detail-price">
 
                     ${money(product.price)}
-
-                    ${
-                        product.old_price
-                            ? `
-                                <del>
-                                    ${money(product.old_price)}
-                                </del>
-                              `
-                            : ""
-                    }
 
                 </div>
 
